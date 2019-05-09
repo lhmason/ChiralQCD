@@ -1,82 +1,159 @@
-(**********************************************************)
-(*                                                        *)
-(*  Model for Chiral perturbation Theory at lowest order  *)
-(*                                                        *)
-(**********************************************************)
+(***************************************************************************************************************)
+(******                       This is the FeynRules mod-file for chiral QCD                               ******)
+(******                                                                                                   ******)
+(******     Authors: L. Mason                                                                             ******)
+(******                                                                                                   ******)
+(****** Choose whether Feynman gauge is desired.                                                          ******)
+(****** If set to False, unitary gauge is assumed.                                                          ****)
+(****** Feynman gauge is especially useful for CalcHEP/CompHEP where the calculation is 10-100 times faster. ***)
+(****** Feynman gauge is not supported in MadGraph and Sherpa.                                              ****)
+(***************************************************************************************************************)
 
-M$ModelName = "ChiPT";
 
-M$Information = {Authors -> {"C. Degrande"}, 
-   Date->"12/06/2009"
-   Institutions -> {"Universite catholique de Louvain (CP3)"}, 
-   Emails -> {"celine.degrande@uclouvain.be"},
-   Version -> 1,
-   URLs->"http://feynrules.phys.ucl.ac.be/view/Main/NLSM"
+M$ModelName = "ChiralQCD";
+
+M$Information = {
+   Authors -> {"L. Mason"}, 
+   Date->"2019",
+   Institutions -> {"University of Johannesburg"}, 
+   Emails -> {"lara.mason@live.com"},
+   Version -> "1"
 };
 
-(********** Index definition *********)
-
-
-(***** Parameter list ******)
-
-M$Parameters = {
-f == {ParameterType -> External,
-	Value->0.14,
-	Description->"decay constant"
-},
-  b == {ParameterType -> External,
-	Value->1/6,
-	Description->"expansion parameter"
-}, 
-  c == {ParameterType -> External,
-	Value->1/120,
-	Description->"expansion parameter"
-},
-  r == {ParameterType -> External,
-	Description->"mass term coefficient"
-},
-  m0 == {ParameterType -> External, 
-	Value->0.8,
-	TeX -> Subscript[m, 0],
-	Description->"anomalous term coefficient"
-},
-
-  md == {ParameterType -> External,
-	Value->0.008, 
-	TeX -> Subscript[m, d],
-	Description->"mass of the down quark"
-}, 
-
-(*isospin limit : mup=md*)
-  mup == {ParameterType -> Internal, Value->md,
-	Value->0.004,
-	TeX -> Subscript[m, u],
-	Description->"mass of the up quark"
-}, 
-  ms == {ParameterType -> External,
-	Value->0.125,
-	TeX -> Subscript[m, s],
-	Description->"mass of the strange quark"
-},
-
-  T == {ParameterType -> Internal,
-	Value->ArcTan[2 Sqrt[2]*r*(ms-md)/(r*(ms-md)-3m0^2)]/2,
-	TeX -> \[Theta],
-	Description->"mixing angle"
-}
-  }
-
-(***** Gauge group list ******)
-
+(* ************************** *)
+(* *****  Gauge groups  ***** *)
+(* ************************** *)
 M$GaugeGroups = {
+  U1Y  == {
+    Abelian          -> True,
+    CouplingConstant -> g1,
+    GaugeBoson       -> B,
+    Charge           -> Y
+  },
+  SU2L == {
+    Abelian           -> False,
+    CouplingConstant  -> gw,
+    GaugeBoson        -> Wi,
+    StructureConstant -> Eps,
+    Representations   -> {Ta,SU2D},
+    Definitions       -> {Ta[a_,b_,c_]->PauliSigma[a,b,c]/2, FSU2L[i_,j_,k_]:> I Eps[i,j,k]}
+  },
+  SU3C == {
+    Abelian           -> False,
+    CouplingConstant  -> gs,
+    GaugeBoson        -> G,
+    StructureConstant -> f,
+    Representations   -> {T,Colour},
+    SymmetricTensor   -> dSUN
   }
+}
+(* ************************** *)
+(* *****    Indices     ***** *)
+(* ************************** *)
 
-(***** Particle classes list ******)
+IndexRange[Index[SU2W      ]] = Unfold[Range[3]];
+IndexRange[Index[SU2D      ]] = Unfold[Range[2]];
+IndexRange[Index[Gluon     ]] = NoUnfold[Range[8]];
+IndexRange[Index[Colour    ]] = NoUnfold[Range[3]];
+IndexRange[Index[Generation]] = Range[3];
 
-M$ClassesDescription = {S[1] == {ClassName -> pi0,
-          SelfConjugate -> True,
-	  Mass->0.135,
-	  Width->0
+IndexStyle[SU2W,       j];
+IndexStyle[SU2D,       k];
+IndexStyle[Gluon,      a];
+IndexStyle[Colour,     m];
+IndexStyle[Generation, f];
+
+
+(* ************************** *)
+(* *** Interaction orders *** *)
+(* ***  (as used by mg5)  *** *)
+(* ************************** *)
+
+M$InteractionOrderHierarchy = {
+  {QCD, 1},
+  {QED, 2}
+};
+
+(* ************************** *)
+(* **** Particle classes **** *)
+(* ************************** *)
+M$ClassesDescription = {
+
+(* Gauge bosons: physical vector fields *)
+  V[1] == {
+    ClassName       -> A,
+    SelfConjugate   -> True,
+    Mass            -> 0,
+    Width           -> 0,
+    ParticleName    -> "a",
+    PDG             -> 22,
+    PropagatorLabel -> "a",
+    PropagatorType  -> W,
+    PropagatorArrow -> None,
+    FullName        -> "Photon"
+  },
+  V[2] == {
+    ClassName       -> Z,
+    SelfConjugate   -> True,
+    Mass            -> {MZ, 91.1876},
+    Width           -> {WZ, 2.4952},
+    ParticleName    -> "Z",
+    PDG             -> 23,
+    PropagatorLabel -> "Z",
+    PropagatorType  -> Sine,
+    PropagatorArrow -> None,
+    FullName        -> "Z"
+  },
+
+  V[3] == {
+    ClassName        -> W,
+    SelfConjugate    -> False,
+    Mass             -> {MW, Internal},
+    Width            -> {WW, 2.085},
+    ParticleName     -> "W+",
+    AntiParticleName -> "W-",
+    QuantumNumbers   -> {Q -> 1},
+    PDG              -> 24,
+    PropagatorLabel  -> "W",
+    PropagatorType   -> Sine,
+    PropagatorArrow  -> Forward,
+    FullName         -> "W"
+  },
+  V[4] == {
+    ClassName        -> G,
+    SelfConjugate    -> True,
+    Indices          -> {Index[Gluon]},
+    Mass             -> 0,
+    Width            -> 0,
+    ParticleName     -> "g",
+    PDG              -> 21,
+    PropagatorLabel  -> "G",
+    PropagatorType   -> C,
+    PropagatorArrow  -> None,
+    FullName         -> "G"
+  },
+
+
+(* Gauge bosons: unphysical vector fields *)
+  V[11] == {
+    ClassName     -> B,
+    Unphysical    -> True,
+    SelfConjugate -> True,
+    Definitions   -> { B[mu_] -> -sw Z[mu]+cw A[mu]}
+  },
+  V[12] == {
+    ClassName     -> Wi,
+    Unphysical    -> True,
+    SelfConjugate -> True,
+    Indices       -> {Index[SU2W]},
+    FlavorIndex   -> SU2W,
+    Definitions   -> { Wi[mu_,1] -> (Wbar[mu]+W[mu])/Sqrt[2], Wi[mu_,2] -> (Wbar[mu]-W[mu])/(I*Sqrt[2]), Wi[mu_,3] -> cw Z[mu] + sw A[mu]}
+  },
+
+   S[1] == {ClassName -> pi0,
+    SelfConjugate -> True,
+    Mass->0.135,
+    Width->0
 },
   
   S[2] == {ClassName -> pim,
@@ -108,7 +185,76 @@ M$ClassesDescription = {S[1] == {ClassName -> pi0,
 	  Mass->0.96,
 	  Width->0
 }
-  
+}
+(***** Parameter list ******)
+
+M$Parameters = {
+
+  cw == {
+    ParameterType -> Internal,
+    Value         -> Sqrt[1-sw2],
+    TeX           -> Subscript[c,w],
+    Description   -> "Cosine of the Weinberg angle"
+  },
+  sw == {
+    ParameterType -> Internal,
+    Value         -> Sqrt[sw2],
+    TeX           -> Subscript[s,w],
+    Description   -> "Sine of the Weinberg angle"
+  },
+
+  gw == {
+    ParameterType    -> Internal,
+    Definitions      -> {gw->ee/sw},
+    InteractionOrder -> {QED,1},
+    TeX              -> Subscript[g,w],
+    Description      -> "Weak coupling constant at the Z pole"
+  },
+  g1 == {
+    ParameterType    -> Internal,
+    Definitions      -> {g1->ee/cw},
+    InteractionOrder -> {QED,1},
+    TeX              -> Subscript[g,1],
+    Description      -> "U(1)Y coupling constant at the Z pole"
+  },
+  gs == {
+    ParameterType    -> Internal,
+    Value            -> Sqrt[4 Pi aS],
+    InteractionOrder -> {QCD,1},
+    TeX              -> Subscript[g,s],
+    ParameterName    -> G,
+    Description      -> "Strong coupling constant at the Z pole"
+  },
+
+
+f == {ParameterType -> External,
+	Value->0.14,
+	Description->"pion decay constant"
+},
+
+  md == {ParameterType -> External,
+	Value->0.008, 
+	TeX -> Subscript[m, d],
+	Description->"mass of the down quark"
+}, 
+
+(*isospin limit : mup=md*)
+  mup == {ParameterType -> Internal, Value->md,
+	Value->0.004,
+	TeX -> Subscript[m, u],
+	Description->"mass of the up quark"
+}, 
+  ms == {ParameterType -> External,
+	Value->0.125,
+	TeX -> Subscript[m, s],
+	Description->"mass of the strange quark"
+},
+
+  T == {ParameterType -> Internal,
+	Value->ArcTan[2 Sqrt[2]*r*(ms-md)/(r*(ms-md)-3m0^2)]/2,
+	TeX -> \[Theta],
+	Description->"mixing angle"
+}
   }
 
 pip = anti[pim];
@@ -132,10 +278,16 @@ M = DiagonalMatrix[{mup, md, ms}];
 
 (*U developed at the pi^6*)
 
-U = MatrixExp[Pion];
-Ubar = IdentityMatrix[3] - I Sqrt[2] Pion/f - MatrixPower[Pion, 2]/f^2 + 
-   2 Sqrt[2] I b MatrixPower[Pion, 3]/f^3 + 
+exp_U = MatrixExp[2 I/f Pion];
+exp_Ubar = MatrixExp[-2 I/f Pion];
+
+U = IdentityMatrix[3] + I Sqrt[2] Pion/f - MatrixPower[Pion, 2]/f^2 -
+   2 Sqrt[2] I b MatrixPower[Pion, 3]/f^3 +
+   4 (b - 1/8) MatrixPower[Pion, 4]/f^4 + I 4 Sqrt[2]*c MatrixPower[Pion, 5]/f^5 - 8*(c+b^2/2-b/2+1/16) MatrixPower[Pion, 6]/f^6;
+Ubar = IdentityMatrix[3] - I Sqrt[2] Pion/f - MatrixPower[Pion, 2]/f^2 +
+   2 Sqrt[2] I b MatrixPower[Pion, 3]/f^3 +
    4 (b - 1/8) MatrixPower[Pion, 4]/f^4 - I 4 Sqrt[2]*c MatrixPower[Pion, 5]/f^5 - 8*(c+b^2/2-b/2+1/16) MatrixPower[Pion, 6]/f^6;
+
 
 (*U at the order pi^5 to speed up the compution of Lkin*)
 

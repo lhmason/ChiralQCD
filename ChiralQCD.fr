@@ -149,51 +149,52 @@ M$ClassesDescription = {
   },
 
    S[1] == {
-    ClassName 	  -> pi0,
-    SelfConjugate -> True,
-    Mass	  -> 0.135,
-    Indices       -> {Index[SU2W]},
-    Width	  -> 0
+    ClassName 	     -> pi,
+    ClassMembers     -> {pip, pim, pi0},
+    SelfConjugate    -> True,
+    Indices          -> {Index[SU2W]},
+    FlavorIndex      -> SU2W,
+    Mass             -> {Mpi, {Mpip,0.140}, {Mpim,0.140}, {Mpi0,0.135}},
+    Width            -> 0
 },
-  
+   
   S[2] == {
-    ClassName 	  -> pim,
-    SelfConjugate -> False,
-    Mass	  -> 0.14,
-    Indices       -> {Index[SU2W]},
-    Width	  -> 0
+    ClassName 	     -> Ka,
+    ClassMembers     -> {Ka0, Kap},
+    SelfConjugate    -> False,
+    Mass             -> {MKa, {MKa0,0.498}, {MKap,0.494}},
+    Indices          -> {Index[SU2D]},
+    FlavorIndex      -> SU2D,
+    Width	     -> 0
 },
-  
+   
   S[3] == {
-    ClassName 	  -> K0,
-    SelfConjugate -> False,
-    Mass	  -> 0.494,
-    Indices       -> {Index[SU2D]},
-    Width	  -> 0
+    ClassName 	     -> eta,
+    SelfConjugate    -> True,
+    Mass	     -> 0.547,
+    Width	     -> 0
 },
   
-  S[4] == {
-    ClassName 	  -> Km,
-    SelfConjugate -> False,
-    Mass	  -> 0.498,
-    Indices       -> {Index[SU2D]},
-    Width	  -> 0
+  S[4] == {  
+    ClassName 	     -> etap, 
+    SelfConjugate    -> True,
+    Mass	     -> 0.958,
+    Width	     -> 0
 },
-  
-  S[5] == {
-    ClassName 	  -> eta,
-    SelfConjugate -> True,
-    Mass	  -> 0.547,
-    Width	  -> 0
-},
-  
-  S[6] == {  
-    ClassName 	  -> etap, 
-    SelfConjugate -> True,
-    Mass	  -> 0.96,
-    Width	  -> 0
+
+(* Unphysical Goldstone bosons field *)
+  S[11] == {
+    ClassName        -> Pion,
+    Unphysical       -> True,
+    SelfConjugate    -> True,
+    Indices          -> {Index[SU2W], Index[SU2D]},
+    Definitions      -> {Pion[1] -> pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), Pion[2] -> Sqrt[2]*pi[1] ,                                      Pion[3] -> Sqrt[2]/2*Kap,
+                         Pion[4] -> Sqrt[2]/2*pi[2],                                    Pion[5] -> -pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), Pion[6] -> Sqrt[2]*Ka0, 
+                         Pion[7] -> Sqrt[2]/2*Kapbar,                                   Pion[8] -> Sqrt[2]/2*Ka0bar,                                    Pion[9] -> - (Cos[Th] eta + Sin[Th] etap)/Sqrt[3] }
+
 }
 }
+
 (***** Parameter list ******)
 
 M$Parameters = {
@@ -238,92 +239,59 @@ M$Parameters = {
   },
 
 
-  f == {
+  fp == {
     ParameterType    -> External,
     Value	     -> 0.14,
     Description	     -> "Pion decay constant"
 },
 
-  md == {
+  m0 == {ParameterType -> External,
+        Value->0.8,
+        TeX -> Subscript[m, 0],
+        Description->"anomalous term coefficient"
+},
+
+  Md == {
     ParameterType    -> External,
     Value	     -> 0.008, 
     TeX 	     -> Subscript[m, d],
     Description	     ->"Mass of the down quark"
 }, 
 
-(* Isospin limit: mup = md*)
-  mup == {
+  Mup == {
     ParameterType    -> Internal,
     Value	     -> 0.004,
     TeX 	     -> Subscript[m, u],
     Description	     ->"mass of the up quark"
 }, 
-  ms == {
+  Ms == {
     ParameterType    -> External,
     Value	     -> 0.125,
     TeX 	     -> Subscript[m, s],
     Description	     -> "Mass of the strange quark"
 },
-  b == {ParameterType -> External,
-        Value->1/6,
-        Description->"expansion parameter"
-}, 
-  c == {ParameterType -> External,
-        Value->1/120,
-        Description->"expansion parameter"
-},
-  r == {ParameterType -> External,
-        Value->1.,
-        Description->"mass term coefficient"
-},
-  T == {
+  Th == { (* what should this be?? *)
     ParameterType    -> Internal,
-    Value	     -> ArcTan[2 Sqrt[2]*r*(ms-md)/(r*(ms-md)-3m0^2)]/2, 
+    Value	     -> ArcTan[2 Sqrt[2]*(Ms-Md)/((Ms-Md)-3m0^2)]/2, 
     TeX 	     -> \[Theta],
     Description	     -> "Mixing angle"
 }
   }
 
-pip = anti[pim];
-pipbar=pim; 
+mPion =  {{Pion[1],  Pion[2], Pion[3]}, 
+          {Pion[4],  Pion[5], Pion[6]}, 
+          {Pion[7],  Pion[8], Pion[9]}}; 
 
-Kp = anti[Km];
-Kpbar = Km;
+Mm = DiagonalMatrix[{Mup, Md, Ms}];
 
-(*matrix of the pseudo goldstone boson*)
+U = Sum[(MatrixPower[(2 I/fp mPion), k] )/(k!), {k, 0, 6}]
+Ubar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 6}]
 
-Pion = {{pi0 + (Cos[T] eta + Sin[T] etap)/Sqrt[3] + Sqrt[2/3] (-Sin[T] eta + Cos[T] etap),       Sqrt[2]*pip,                       Sqrt[2]*Kp}, 
-        {Sqrt[2]*pim,                -pi0 + (Cos[T] eta + Sin[T] etap)/Sqrt[3] + Sqrt[2/3] (-Sin[T] eta + Cos[T] etap),             Sqrt[2]*K0}, 
-        {Sqrt[2]*Km,         Sqrt[2]*K0bar,                   -2 (Cos[T] eta + Sin[T] etap)/Sqrt[3] +   Sqrt[2/3] (-Sin[T] eta + Cos[T] etap)}};
+Uk = Sum[(MatrixPower[(2 I/fp mPion), k] )/(k!), {k, 0, 5}]
+Ukbar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 5}]
 
-M = DiagonalMatrix[{mup, md, ms}];
-
-(*U developed at the pi^6*)
-
-exp_U = MatrixExp[2 I/f Pion];
-exp_Ubar = MatrixExp[-2 I/f Pion];
-
-U = IdentityMatrix[3] + 2 I/f Pion - 2/f^2 MatrixPower[Pion, 2] 
-  - 4/3 I/f^3 MatrixPower[Pion, 3] + 2/(3 f^4) MatrixPower[Pion, 4] + 4/(15 f^5) I MatrixPower[Pion, 5] 
-  - 64/(720 f^6) MatrixPower[Pion, 6];
-
-Ubar = IdentityMatrix[3] - 2 I/f Pion - 2/f^2 MatrixPower[Pion, 2] 
-  + 4/3 I/f^3 MatrixPower[Pion, 3] + 2/(3 f^4) MatrixPower[Pion, 4] - 4/(15 f^5) I MatrixPower[Pion, 5] 
-  - 64/(720 f^6) MatrixPower[Pion, 6];
-
-(*U at the order pi^5 to speed up the compution of Lkin*)
-
-Uk = IdentityMatrix[3] + I Sqrt[2] Pion/f - MatrixPower[Pion, 2]/f^2 -
-   2 Sqrt[2] I b MatrixPower[Pion, 3]/f^3 +
-   4 (b - 1/8) MatrixPower[Pion, 4]/f^4 + I 4 Sqrt[2]*c MatrixPower[Pion, 5]/f^5;
-Ukbar = IdentityMatrix[3] - I Sqrt[2] Pion/f - MatrixPower[Pion, 2]/f^2 +
-   2 Sqrt[2] I b MatrixPower[Pion, 3]/f^3 +
-   4 (b - 1/8) MatrixPower[Pion, 4]/f^4 - I 4 Sqrt[2]*c MatrixPower[Pion, 5]/f^5;
-
-(*Lagrangian*)
-
-Lkin := f^2/8 Tr[DC[Uk,mu].DC[Ukbar,mu]];
-Lmass := f^2/8 Tr[M.U+M.Ubar];
+Lkin := fp^2/8 Tr[DC[Uk,mu].DC[Ukbar,mu]];
+Lmass := fp^2/8 Tr[Mm.U + Mm.Ubar];
 
 LQCD := Lkin + Lmass;
 

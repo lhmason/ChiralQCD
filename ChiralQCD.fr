@@ -20,9 +20,9 @@ M$Information = {
    Version -> "1"
 };
 
-(* ************************ *)
-(* ****  Gauge groups  **** *)
-(* ************************ *)
+(* -------------------------------- *)
+(* -------- Gauge Groups ---------- *)
+(* -------------------------------- *)
 
 M$GaugeGroups = {
   U1Y  == {
@@ -48,9 +48,9 @@ M$GaugeGroups = {
     SymmetricTensor   -> dSUN
   }
 }
-(* ************************** *)
-(* *****    Indices     ***** *)
-(* ************************** *)
+(* -------------------------------- *)
+(* ---------- Indices  ------------ *)
+(* -------------------------------- *)
 
 IndexRange[Index[SU2W      ]] = Unfold[Range[3]];
 IndexRange[Index[SU2D      ]] = Unfold[Range[2]];
@@ -62,22 +62,23 @@ IndexStyle[SU2D,       k];
 IndexStyle[Gluon,      a];
 IndexStyle[Colour,     m];
 
-(* ************************** *)
-(* *** Interaction orders *** *)
-(* ***  (as used by mg5)  *** *)
-(* ************************** *)
+(* -------------------------------- *)
+(* --------- Int. Orders  --------- *)
+(* -------------------------------- *)
 
 M$InteractionOrderHierarchy = {
   {QCD, 1},
   {QED, 2}
 };
 
-(* ************************** *)
-(* **** Particle classes **** *)
-(* ************************** *)
+(* -------------------------------- *)
+(* ------- Particle Classes  -------*)
+(* -------------------------------- *)
+
 M$ClassesDescription = {
 
 (* Gauge bosons: physical vector fields *)
+
   V[1] == {
     ClassName       -> A,
     SelfConjugate   -> True,
@@ -131,8 +132,8 @@ M$ClassesDescription = {
     FullName         -> "G"
   },
 
-
 (* Gauge bosons: unphysical vector fields *)
+
   V[11] == {
     ClassName     -> B,
     Unphysical    -> True,
@@ -147,6 +148,8 @@ M$ClassesDescription = {
     FlavorIndex   -> SU2W,
     Definitions   -> { Wi[mu_,1] -> (Wbar[mu]+W[mu])/Sqrt[2], Wi[mu_,2] -> (Wbar[mu]-W[mu])/(I*Sqrt[2]), Wi[mu_,3] -> cw Z[mu] + sw A[mu]}
   },
+
+(* Pseudoscalar mesons *)
 
    S[1] == {
     ClassName 	     -> pi,
@@ -183,6 +186,7 @@ M$ClassesDescription = {
 },
 
 (* Unphysical Goldstone bosons field *)
+
   S[11] == {
     ClassName        -> Pion,
     Unphysical       -> True,
@@ -195,9 +199,13 @@ M$ClassesDescription = {
 }
 }
 
-(***** Parameter list ******)
+(* -------------------------------- *)
+(* ---------- Parameters  --------- *)
+(* -------------------------------- *)
 
 M$Parameters = {
+
+(* SM params *)
 
   cw == {
     ParameterType -> Internal,
@@ -238,6 +246,7 @@ M$Parameters = {
     Description      -> "Strong coupling constant at the Z pole"
   },
 
+(* chiral model params *)
 
   fp == {
     ParameterType    -> External,
@@ -270,6 +279,7 @@ M$Parameters = {
     TeX 	     -> Subscript[m, s],
     Description	     -> "Mass of the strange quark"
 },
+
   Th == { (* what should this be?? *)
     ParameterType    -> Internal,
     Value	     -> ArcTan[2 Sqrt[2]*(Ms-Md)/((Ms-Md)-3m0^2)]/2, 
@@ -277,6 +287,10 @@ M$Parameters = {
     Description	     -> "Mixing angle"
 }
   }
+
+(* -------------------------------- *)
+(* ---------- Matrices  ----------- *)
+(* -------------------------------- *)
 
 mPion =  {{Pion[1],  Pion[2], Pion[3]}, 
           {Pion[4],  Pion[5], Pion[6]}, 
@@ -290,8 +304,13 @@ Ubar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 6}]
 Uk = Sum[(MatrixPower[(2 I/fp mPion), k] )/(k!), {k, 0, 5}]
 Ukbar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 5}]
 
+(* -------------------------------- *)
+(* ---------- Lagrangian  --------- *)
+(* -------------------------------- *)
+
 Lkin := fp^2/8 Tr[DC[Uk,mu].DC[Ukbar,mu]];
 Lmass := fp^2/8 Tr[Mm.U + Mm.Ubar];
+Lanom := fp^2/6 (I Log[Det[U]])^2 
 
-LQCD := Lkin + Lmass;
+LQCD := Lkin + Lmass + Lanom;
 

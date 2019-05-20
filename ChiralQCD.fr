@@ -107,7 +107,7 @@ M$ClassesDescription = {
   V[3] == {
     ClassName        -> W,
     SelfConjugate    -> False,
-    Mass             -> {MW, Internal},
+    Mass             -> {MW, 80.379},
     Width            -> {WW, 2.085},
     ParticleName     -> "W+",
     AntiParticleName -> "W-",
@@ -151,19 +151,21 @@ M$ClassesDescription = {
 
 (* Pseudoscalar mesons *)
 
-   S[1] == {
+  S[1] == {
     ClassName 	     -> pi,
     ClassMembers     -> {pip, pim, pi0},
-    SelfConjugate    -> True,
+    SelfConjugate    -> False,
+    PDG              -> {211, -211, 111},
     Indices          -> {Index[SU2W]},
     FlavorIndex      -> SU2W,
     Mass             -> {Mpi, {Mpip,0.140}, {Mpim,0.140}, {Mpi0,0.135}},
     Width            -> 0
 },
-   
+
   S[2] == {
     ClassName 	     -> Ka,
     ClassMembers     -> {Ka0, Kap},
+    PDG              -> {311,321},    
     SelfConjugate    -> False,
     Mass             -> {MKa, {MKa0,0.498}, {MKap,0.494}},
     Indices          -> {Index[SU2D]},
@@ -175,12 +177,14 @@ M$ClassesDescription = {
     ClassName 	     -> eta,
     SelfConjugate    -> True,
     Mass	     -> 0.547,
+    PDG              -> {221},    
     Width	     -> 0
 },
   
   S[4] == {  
     ClassName 	     -> etap, 
     SelfConjugate    -> True,
+    PDG              -> {331},    
     Mass	     -> 0.958,
     Width	     -> 0
 },
@@ -190,11 +194,18 @@ M$ClassesDescription = {
   S[11] == {
     ClassName        -> Pion,
     Unphysical       -> True,
-    SelfConjugate    -> True,
+    SelfConjugate    -> False,
     Indices          -> {Index[SU2W], Index[SU2D]},
-    Definitions      -> {Pion[1] -> pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), Pion[2] -> Sqrt[2]*pi[1] ,                                      Pion[3] -> Sqrt[2]/2*Kap,
-                         Pion[4] -> Sqrt[2]/2*pi[2],                                    Pion[5] -> -pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), Pion[6] -> Sqrt[2]*Ka0, 
-                         Pion[7] -> Sqrt[2]/2*Kapbar,                                   Pion[8] -> Sqrt[2]/2*Ka0bar,                                    Pion[9] -> - (Cos[Th] eta + Sin[Th] etap)/Sqrt[3] }
+    Definitions      -> {
+          Pion[1,1] -> pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), 
+          Pion[1,2] -> Sqrt[2]*pi[1],                                      
+          Pion[1,3] -> Sqrt[2]/2*Kap,
+          Pion[2,1] -> Sqrt[2]/2*pi[2],                                    
+          Pion[2,2] -> -pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), 
+          Pion[2,3] -> Sqrt[2]*Ka0, 
+          Pion[3,1] -> Sqrt[2]/2*Kapbar,                                   
+          Pion[3,2] -> Sqrt[2]/2*Ka0bar,                                    
+          Pion[3,3] ->  - (Cos[Th] eta + Sin[Th] etap)/Sqrt[3] }
 
 }
 }
@@ -254,11 +265,6 @@ M$Parameters = {
     Description	     -> "Pion decay constant"
 },
 
-  m0 == {ParameterType -> External,
-        Value->0.8,
-        TeX -> Subscript[m, 0],
-        Description->"anomalous term coefficient"
-},
 
   Md == {
     ParameterType    -> External,
@@ -280,9 +286,10 @@ M$Parameters = {
     Description	     -> "Mass of the strange quark"
 },
 
+
   Th == { (* what should this be?? *)
     ParameterType    -> Internal,
-    Value	     -> ArcTan[2 Sqrt[2]*(Ms-Md)/((Ms-Md)-3m0^2)]/2, 
+    Value	     -> -0.4712, (* -27 deg in radians 0901.2860 *) (*ArcTan[2 Sqrt[2]*(Ms-Md)/((Ms-Md)-3m0^2)]/2, *)
     TeX 	     -> \[Theta],
     Description	     -> "Mixing angle"
 }
@@ -292,25 +299,22 @@ M$Parameters = {
 (* ---------- Matrices  ----------- *)
 (* -------------------------------- *)
 
-mPion =  {{Pion[1],  Pion[2], Pion[3]}, 
-          {Pion[4],  Pion[5], Pion[6]}, 
-          {Pion[7],  Pion[8], Pion[9]}}; 
+Mm = DiagonalMatrix[{Mup, Mup, Ms}];
 
-Mm = DiagonalMatrix[{Mup, Md, Ms}];
-
-U = Sum[(MatrixPower[(2 I/fp mPion), k] )/(k!), {k, 0, 6}]
-Ubar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 6}]
-
-Uk = Sum[(MatrixPower[(2 I/fp mPion), k] )/(k!), {k, 0, 5}]
-Ukbar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 5}]
+U = Sum[(MatrixPower[(2 I/fp Pion), k] )/(k!), {k, 0, 5}] ]; 
+Ubar = Sum[(MatrixPower[(-2 I/fp Pion), k] )/(k!), {k, 0, 5}]; 
 
 (* -------------------------------- *)
 (* ---------- Lagrangian  --------- *)
 (* -------------------------------- *)
 
-Lkin := fp^2/8 Tr[DC[Uk,mu].DC[Ukbar,mu]];
-Lmass := fp^2/8 Tr[Mm.U + Mm.Ubar];
-Lanom := fp^2/6 (I Log[Det[U]])^2 
+
+(* testing *)
+Lkin := Block[{ii,mu}, fp^2/8 Tr[ ExpandIndices[ DC[Pion[1,1],mu] DC[Pionbar[1,1],mu] ] ] ]; 
+
+Lmass := fp^2/8 Tr[Mm.Pion[1,1] + Mm.Pionbar[1,1]];
+
+Lanom := fp^2/6 (I Log[Det[U]])^2;
 
 LQCD := Lkin + Lmass + Lanom;
 

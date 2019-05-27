@@ -301,18 +301,21 @@ M$Parameters = {
 
 Mm = DiagonalMatrix[{Mup, Mup, Ms}];
 
-U = Sum[(MatrixPower[(2 I/fp Pion), k] )/(k!), {k, 0, 5}] ]; 
-Ubar = Sum[(MatrixPower[(-2 I/fp Pion), k] )/(k!), {k, 0, 5}]; 
+mPion =  {{Pion[1,1],  Pion[1,2], Pion[1,3]},
+          {Pion[1,2],  Pion[2,2], Pion[2,3]},
+          {Pion[3,1],  Pion[3,2], Pion[3,3]}};
+
+U = Sum[(MatrixPower[(2 I/fp mPion), k] )/(k!), {k, 0, 5}] ; 
+Ubar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 5}]; 
 
 (* -------------------------------- *)
 (* ---------- Lagrangian  --------- *)
 (* -------------------------------- *)
 
 
-(* testing *)
-Lkin := Block[{ii,mu}, fp^2/8 Tr[ ExpandIndices[ DC[Pion[1,1],mu] DC[Pionbar[1,1],mu] ] ] ]; 
+Lkin := Block[{ii,mu}, fp^2/8 Tr[ ExpandIndices[ DC[U,mu] DC[U,mu] ] ] ]; 
 
-Lmass := fp^2/8 Tr[Mm.Pion[1,1] + Mm.Pionbar[1,1]];
+Lmass := fp^2/8 Tr[Mm.U + Mm.Ubar];
 
 Lanom := fp^2/6 (I Log[Det[U]])^2;
 

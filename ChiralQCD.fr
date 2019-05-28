@@ -304,14 +304,12 @@ Mm = DiagonalMatrix[{Mup, Mup, Ms}];
 SquaredMat[Pion_,n_,i_,j_] := Block[{kk},
   Switch[n,
       1, Return[Pion[i,j]], 2, Return[Pion[i,kk] Pion[j,kk]],
-     _, Return[SquaredMat[Pion, n-1, i,kk] Pion[kk,j]]
+     _, Return[SquaredMat[Pion, n-1, i,kk] Pion[j,kk]]
   ];
 ];
 
-
- U    := Block[{ii,jj}, 1 + Sum[(  2 I/fp SquaredMat[Pion,k,ii,jj] )/(k!), {k, 1, 1}] ]; 
- Ubar := Block[{ll,mm}, 1 + Sum[( -2 I/fp SquaredMat[Pion,k,ll,mm] )/(k!), {k, 1, 1}] ]; 
-
+U    := Block[{ii,jj}, 1 + Sum[(  2 I/fp SquaredMat[Pion,k,ii,jj] )/(k!), {k, 1, 2}] ]; 
+Ubar := Block[{ll,mm}, 1 + Sum[( -2 I/fp SquaredMat[Pion,k,ll,mm] )/(k!), {k, 1, 2}] ]; 
 
 (* -------------------------------- *)
 (* ---------- Lagrangian  --------- *)
@@ -320,9 +318,9 @@ SquaredMat[Pion_,n_,i_,j_] := Block[{kk},
 
 Lkin := Block[{ii,jj,mu}, fp^2/8 Tr[ ExpandIndices[ DC[U,mu].DC[Ubar,mu] ] ] ]; 
 
-Lmass := fp^2/8 Tr[Mm.(IdentityMatrix[3]*U) + Mm.(IdentityMatrix[3]*Ubar)];
+Lmass := Block[{ii,jj}, fp^2/8 Tr[ Mm.SquaredMat[Pion,2,ii,jj] ] ];
 
-Lanom := fp^2/6 (I Log[Det[U]])^2;
+Lanom := Block[{ii,jj}, fp^2/6 (I Tr[SquaredMat[Pion,1,ii,jj]] )^2 ];
 
-LQCD := Lkin + Lmass + Lanom;
+LQCD := Lkin + Lmass + Lanom; 
 

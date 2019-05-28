@@ -301,21 +301,26 @@ M$Parameters = {
 
 Mm = DiagonalMatrix[{Mup, Mup, Ms}];
 
-mPion =  {{Pion[1,1],  Pion[1,2], Pion[1,3]},
-          {Pion[1,2],  Pion[2,2], Pion[2,3]},
-          {Pion[3,1],  Pion[3,2], Pion[3,3]}};
+SquaredMat[Pion_,n_,i_,j_] := Block[{kk},
+  Switch[n,
+      1, Return[Pion[i,j]], 2, Return[Pion[i,kk] Pion[j,kk]],
+     _, Return[SquaredMat[Pion, n-1, i,kk] Pion[kk,j]]
+  ];
+];
 
-U = Sum[(MatrixPower[(2 I/fp mPion), k] )/(k!), {k, 0, 5}] ; 
-Ubar = Sum[(MatrixPower[(-2 I/fp mPion), k] )/(k!), {k, 0, 5}]; 
+
+ U    := Block[{ii,jj}, 1 + Sum[(  2 I/fp SquaredMat[Pion,k,ii,jj] )/(k!), {k, 1, 1}] ]; 
+ Ubar := Block[{ll,mm}, 1 + Sum[( -2 I/fp SquaredMat[Pion,k,ll,mm] )/(k!), {k, 1, 1}] ]; 
+
 
 (* -------------------------------- *)
 (* ---------- Lagrangian  --------- *)
 (* -------------------------------- *)
 
 
-Lkin := Block[{ii,mu}, fp^2/8 Tr[ ExpandIndices[ DC[U,mu] DC[U,mu] ] ] ]; 
+Lkin := Block[{ii,jj,mu}, fp^2/8 Tr[ ExpandIndices[ DC[U,mu].DC[Ubar,mu] ] ] ]; 
 
-Lmass := fp^2/8 Tr[Mm.U + Mm.Ubar];
+Lmass := fp^2/8 Tr[Mm.(IdentityMatrix[3]*U) + Mm.(IdentityMatrix[3]*Ubar)];
 
 Lanom := fp^2/6 (I Log[Det[U]])^2;
 

@@ -194,8 +194,8 @@ M$ClassesDescription = {
   S[11] == {
     ClassName        -> Pion,
     Unphysical       -> True,
-    SelfConjugate    -> False,
-    Indices          -> {Index[SU2W], Index[SU2D]},
+    SelfConjugate    -> True,
+    Indices          -> {Index[SU2W], Index[SU2W]},
     Definitions      -> {
           Pion[1,1] -> pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), 
           Pion[1,2] -> Sqrt[2]*pi[1],                                      
@@ -286,6 +286,14 @@ M$Parameters = {
     Description	     -> "Mass of the strange quark"
 },
 
+  Mm == {
+    ParameterType    -> Internal,
+    Indices          -> {Index[SU2W], Index[SU2W]},
+    Value            -> {Mm[1,1] -> Mup^2, Mm[1,2] -> 0.,   Mm[1,3] -> 0.,
+                         Mm[2,1] -> 0.,    Mm[2,2] -> Md^2, Mm[2,3] -> 0.,
+                         Mm[3,1] -> 0.,    Mm[3,2] -> 0.,   Mm[3,3] -> Ms^2},
+    Description -> "Mass-Matrix"},
+(* DiagonalMatrix[{Mup^2, Mup^2, Ms^2}]; *)
 
   Th == { (* what should this be?? *)
     ParameterType    -> Internal,
@@ -299,28 +307,27 @@ M$Parameters = {
 (* ---------- Matrices  ----------- *)
 (* -------------------------------- *)
 
-Mm = DiagonalMatrix[{Mup^2, Mup^2, Ms^2}];
 
 SquaredMat[Pion_,n_,i_,j_] := Module[{kk},
   Switch[n,
-      0, KroneckerDelta[i,j], 1, Return[Pion[i,j]], 2, Return[Pion[i,kk] Pion[j,kk]],
-     _, Return[SquaredMat[Pion, n-1, i,kk] Pion[j,kk]]
+      0, Return[KroneckerDelta[i,j]], 1, Return[Pion[i,j]], 2, Return[Pion[i,kk] Pion[kk,j]],
+     _, Return[SquaredMat[Pion, n-1, i,kk] Pion[kk,j]]
   ];
 ];
 
-U    := Module[{ii,jj}, SquaredMat[Pion,0,ii,jj] + Sum[(  2 I/fp SquaredMat[Pion,k,ii,jj] )/(k!), {k, 1, 2}] ]; 
-Ubar := Module[{ii,jj}, SquaredMat[Pion,0,ii,jj] + Sum[( -2 I/fp SquaredMat[Pion,k,ii,jj] )/(k!), {k, 1, 2}] ]; 
+U    := Block[{ii,jj}, SquaredMat[Pion,0,ii,jj] + Sum[(  2 I/fp SquaredMat[Pion,k,ii,jj] )/(k!), {k, 1, 2}] ]; (* block or module? *) 
+Ubar := Block[{jj,ll}, SquaredMat[Pion,0,jj,ll] + Sum[( -2 I/fp SquaredMat[Pion,k,jj,ll] )/(k!), {k, 1, 2}] ]; 
 
 (* -------------------------------- *)
 (* ---------- Lagrangian  --------- *)
 (* -------------------------------- *)
 
 
-Lkin := fp^2/8 ExpandIndices[ DC[U,mu].DC[Ubar,mu] ] ;
+Lkin := fp^2/8 ExpandIndices[ DC[U,mu].DC[Ubar,mu] ] ; 
 
-Lmass := Block[{ii,jj}, fp^2/8 ExpandIndices[ Mm[ii,jj].SquaredMat[Pion,2,jj,ii] ]] ;
+Lmass := Block[{ii,jj,ll}, fp^2/8  ExpandIndices[ Mm[ii,ii] SquaredMat[Pion,2,ii,ii]] ]; (* mass matrix is diag so only need ii,ii terms *) 
 
-Lanom := Block[{ii,jj}, - fp^2/6 ExpandIndices[ SquaredMat[Pion,1,ii,jj].SquaredMat[Pion,1,jj,ii] ]];
+Lanom := Block[{ii,jj,ll}, - fp^2/6 ExpandIndices[ SquaredMat[Pion,1,jj,ii].SquaredMat[Pion,1,ii,ll] ]];
 
 LQCD := Lkin + Lmass + Lanom; 
 

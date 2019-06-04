@@ -56,13 +56,11 @@ IndexRange[Index[SU2W      ]] = Unfold[Range[3]];
 IndexRange[Index[SU2D      ]] = Unfold[Range[2]];
 IndexRange[Index[Gluon     ]] = NoUnfold[Range[8]];
 IndexRange[Index[Colour    ]] = NoUnfold[Range[3]];
-IndexRange[Index[Generation]] = Range[3];
 
 IndexStyle[SU2W,       j];
 IndexStyle[SU2D,       k];
 IndexStyle[Gluon,      a];
 IndexStyle[Colour,     m];
-IndexStyle[Generation, f];
 
 (* -------------------------------- *)
 (* --------- Int. Orders  --------- *)
@@ -209,20 +207,7 @@ M$ClassesDescription = {
           Pion[3,2] -> Sqrt[2]/2*Ka0bar,                                    
           Pion[3,3] ->  - (Cos[Th] eta + Sin[Th] etap)/Sqrt[3] }
 
-},
-
-  S[111] == {
-    ClassName        -> SquaredMat,
-    Unphysical       -> True,
-    SelfConjugate    -> True,
-    Indices          -> {Index[Generation], Index[Generation]},
-    Definitions      -> {
-    SquaredMat[0,i_,j_] :> Module[{kk}, KroneckerDelta[i,j]],
-    SquaredMat[1,i_,j_] :> Module[{kk}, Pion[i,j]],
-    SquaredMat[2,i_,j_] :> Module[{kk}, Pion[i,kk] Pion[kk,j]]}
 }
-
-
 }
 
 (* -------------------------------- *)
@@ -322,23 +307,31 @@ M$Parameters = {
 (* ---------- Matrices  ----------- *)
 (* -------------------------------- *)
 
-U[ii_,jj_]    := SquaredMat[0,ii,jj] + Sum[(  2 I/fp SquaredMat[k,ii,jj] )/(k!), {k, 1, 2}] ; 
-Ubar[ii_,jj_] := SquaredMat[0,jj,ll] + Sum[( -2 I/fp SquaredMat[k,jj,ll] )/(k!), {k, 1, 2}] ; 
+
+SquaredMat[Pion_,n_,i_,j_] := Module[{kk},
+  Switch[n,
+      0, Return[KroneckerDelta[i,j]], 1, Return[Pion[i,j]], 2, Return[Pion[i,kk] Pion[kk,j]],
+     _, Return[SquaredMat[Pion, n-1, i,kk] Pion[kk,j]]
+  ];
+];
+
+U    := Block[{ii,jj}, SquaredMat[Pion,0,ii,jj] + Sum[(  2 I/fp SquaredMat[Pion,k,ii,jj] )/(k!), {k, 1, 2}] ]; (* block or module? *) 
+Ubar := Block[{jj,ll}, SquaredMat[Pion,0,jj,ll] + Sum[( -2 I/fp SquaredMat[Pion,k,jj,ll] )/(k!), {k, 1, 2}] ]; 
 
 (* -------------------------------- *)
 (* ---------- Lagrangian  --------- *)
 (* -------------------------------- *)
 
-Lkin := Block[{ii,jj}, fp^2/8 ExpandIndices[ DC[U[ii,jj],mu]*DC[Ubar[jj,ii],mu] ]] ; 
 
-Lmass := Block[{ii,jj,ll}, fp^2/8  ExpandIndices[ Mm[ii,ii] SquaredMat[2,ii,ii]] ]; (* mass matrix is diag so only need ii,ii terms *) 
+Lkin := fp^2/8 ExpandIndices[ DC[U,mu].DC[Ubar,mu] ] ; 
 
-Lanom := Block[{ii,jj,ll}, - fp^2/6 ExpandIndices[ SquaredMat[1,jj,ii].SquaredMat[1,ii,ll] ]];
+Lmass := Block[{ii,jj,ll}, fp^2/8  ExpandIndices[ Mm[ii,ii] SquaredMat[Pion,2,ii,ii]] ]; (* mass matrix is diag so only need ii,ii terms *) 
 
-Lexample  := Block[{ii,jj},    ExpandIndices[ SquaredMat[1,jj,ii]] ];
-Lexample2 := Block[{ii,jj},    ExpandIndices[ SquaredMat[1,jj,ii].SquaredMat[1,ii,jj]] ];
-Lexample3 := Block[{ii,jj,ll}, ExpandIndices[ SquaredMat[1,jj,ii].SquaredMat[1,ii,ll]] ];
-Lexample4 := Block[{ii,jj},    ExpandIndices[ SquaredMat[2,jj,ii]] ];
+Lanom := Block[{ii,jj,ll}, - fp^2/6 ExpandIndices[ SquaredMat[Pion,1,jj,ii].SquaredMat[Pion,1,ii,ll] ]];
+
+Lexample  := Block[{ii,jj},    ExpandIndices[ SquaredMat[Pion,1,jj,ii]] ];
+Lexample2 := Block[{ii,jj},    ExpandIndices[SquaredMat[Pion,1,jj,ii].SquaredMat[Pion,1,ii,jj]] ];
+Lexample3 := Block[{ii,jj,ll}, ExpandIndices[SquaredMat[Pion,1,jj,ii].SquaredMat[Pion,1,ii,ll]] ];
 
 LQCD := Lkin + Lmass + Lanom; 
 

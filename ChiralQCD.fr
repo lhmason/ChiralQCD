@@ -199,15 +199,19 @@ M$ClassesDescription = {
     ClassName        -> Pion,
     Unphysical       -> True,
     SelfConjugate    -> True,
-    Indices          -> {Index[Generation], Index[Generation]},
-    (* FlavorIndex      -> Generation, *)
-    (* FlavorIndex    -> SU2W, *)
+    Indices          -> {Generation, Generation},
     Definitions      -> {
-            
-            Pion[i_,j_] -> KaM[i,j]*pi[i]  
-            (* Pion[i_,j_] -> Sig1M[i,j]*pi[i] + Sig3M[i,j]*pi[3] + EtaM[i,j]*(Cos[Th] eta + Sin[Th] etap) + KaM[i,j]*Ka[i] + KaMb[i,j]*Kabar[i] *)
-} 
+          Pion[1,1] -> pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), 
+          Pion[1,2] -> Sqrt[2]*pi[1],                                      
+          Pion[1,3] -> Sqrt[2]/2*Kap,
+          Pion[2,1] -> Sqrt[2]/2*pi[2],                                    
+          Pion[2,2] -> -pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), 
+          Pion[2,3] -> Sqrt[2]*Ka0, 
+          Pion[3,1] -> Sqrt[2]/2*Kapbar,                                   
+          Pion[3,2] -> Sqrt[2]/2*Ka0bar,                                    
+          Pion[3,3] ->  - (Cos[Th] eta + Sin[Th] etap)/Sqrt[3] }
 }
+          
 }
 
 (* -------------------------------- *)
@@ -215,83 +219,6 @@ M$ClassesDescription = {
 (* -------------------------------- *)
 
 M$Parameters = {
-
-(* SU2 matrices *)
-
- KaM == { 
-    ParameterType    -> External, 
-    Indices          -> {Index[Generation], Index[Generation]}, 
-    Value      -> {
-       KaM[1,1] -> 0,
-       KaM[1,2] -> 0,
-       KaM[1,3] -> 1,
-       KaM[2,1] -> 0,
-       KaM[2,2] -> 0,
-       KaM[2,3] -> 1,
-       KaM[3,1] -> 0,
-       KaM[3,2] -> 0,
-       KaM[3,3] -> 0}
-       },
-
- KaMb == { 
-    ParameterType    -> External, 
-    Indices          -> {Index[Generation], Index[Generation]}, 
-    Value      -> {
-       KaMb[1,1] -> 0,
-       KaMb[1,2] -> 0,
-       KaMb[1,3] -> 0,
-       KaMb[2,1] -> 0,
-       KaMb[2,2] -> 0,
-       KaMb[2,3] -> 0,
-       KaMb[3,1] -> 1,
-       KaMb[3,2] -> 1,
-       KaMb[3,3] -> 0}
-       },
-
- EtaM == { 
-    ParameterType    -> External, 
-    Indices          -> {Index[Generation], Index[Generation]}, 
-    Value      -> {
-       EtaM[1,1] -> 1,
-       EtaM[1,2] -> 0,
-       EtaM[1,3] -> 0,
-       EtaM[2,1] -> 0,
-       EtaM[2,2] -> 1,
-       EtaM[2,3] -> 0,
-       EtaM[3,1] -> 0,
-       EtaM[3,2] -> 0,
-       EtaM[3,3] -> -2}
-       },
-
- Sig1M == { 
-    ParameterType    -> External, 
-    Indices          -> {Index[Generation], Index[Generation]}, 
-    Value      -> {
-       Sig1M[1,1] -> 0,
-       Sig1M[1,2] -> 1,
-       Sig1M[1,3] -> 0,
-       Sig1M[2,1] -> 1,
-       Sig1M[2,2] -> 0,
-       Sig1M[2,3] -> 0,
-       Sig1M[3,1] -> 0,
-       Sig1M[3,2] -> 0,
-       Sig1M[3,3] -> 0}
-       },
-
- Sig3M == { 
-    ParameterType    -> External, 
-    Indices          -> {Index[Generation], Index[Generation]}, 
-    Value      -> {
-       Sig3M[1,1] -> PauliSigma[3,1,1],
-       Sig3M[1,2] -> PauliSigma[3,1,2],
-       Sig3M[1,3] -> 0,
-       Sig3M[2,1] -> PauliSigma[3,2,1],
-       Sig3M[2,2] -> PauliSigma[3,2,2],
-       Sig3M[2,3] -> 0,
-       Sig3M[3,1] -> 0,
-       Sig3M[3,2] -> 0,
-       Sig3M[3,3] -> 0}
-       },
 
 (* SM params *)
 
@@ -370,6 +297,7 @@ M$Parameters = {
                          Mm[2,1] -> 0.,    Mm[2,2] -> Md^2, Mm[2,3] -> 0.,
                          Mm[3,1] -> 0.,    Mm[3,2] -> 0.,   Mm[3,3] -> Ms^2},
     Description -> "Mass-Matrix"},
+
 (* DiagonalMatrix[{Mup^2, Mup^2, Ms^2}]; *)
 
   Th == { (* what should this be?? *)
@@ -398,30 +326,11 @@ Ubar[ii_,jj_] := SquaredMat[0,ii,jj] + Sum[( -2 I/fp SquaredMat[k,ii,jj] )/(k!),
 (* ---------- Lagrangian  --------- *)
 (* -------------------------------- *)
 
-(*  Lkin := Block[{ii,jj,mu}, fp^2/8 ExpandIndices[ del[ U[ii,jj],mu]]/.{ del[u__, Index[Lorentz, mu]] :> DC[u, Index[Lorentz, mu] ],  f_[del][u__, Index[Lorentz, mu] ] :> f[DC][u, Index[Lorentz, mu] ]  } ];  *)  
-
-(* Lkin := Block[{ii,jj,mu}, fp^2/8 ExpandIndices[ DC[ U[ii,jj],mu]]]; *)
-
-Lkin := Block[{ii,jj,mu}, fp^2/8 ExpandIndices[ U[ii,jj]*Ubar[jj,ii] ] ] ; 
-(* Lkin := Block[{ii,jj,dkin}, *)
-
-(*   dkin = fp^2/8 ExpandIndices[ del[ U[ii,jj],mu]] ; *)                       
-(*   dkin = dkin/.del[u__, Index[Lorentz, mu]] -> DC[u, Index[Lorentz, mu]] *)
-(* ]; *)
-
-
-
-(* del[Ubar[jj,ii],mu] ] ] ;  *)
-(* Lkin := Block[{ii,jj}, fp^2/8 ExpandIndices[ del[U[ii,jj],mu]*del[Ubar[jj,ii],mu] ]/.del->DC ] ;  *) 
+Lkin := Block[{ii,jj}, fp^2/8 ExpandIndices[ DC[U[ii,jj],mu] * DC[Ubar[jj,ii],mu] ] ] ; 
 
 Lmass := Block[{ii,jj,ll}, fp^2/8  ExpandIndices[ Mm[ii,ii] SquaredMat[2,ii,ii]] ]; (* mass matrix is diag so only need ii,ii terms *) 
 
 Lanom := Block[{ii,jj,ll}, - fp^2/6 ExpandIndices[ SquaredMat[1,jj,ii].SquaredMat[1,ii,ll] ]];
-
-Lexample  := Block[{ii,jj},    ExpandIndices[ SquaredMat[1,jj,ii]] ];
-Lexample2 := Block[{ii,jj},    ExpandIndices[ SquaredMat[1,jj,ii].SquaredMat[1,ii,jj]] ];
-Lexample3 := Block[{ii,jj,ll}, ExpandIndices[ SquaredMat[1,jj,ii].SquaredMat[1,ii,ll]] ];
-Lexample4 := Block[{ii,jj},    ExpandIndices[ SquaredMat[2,jj,ii]] ];
 
 LQCD := Lkin + Lmass + Lanom; 
 

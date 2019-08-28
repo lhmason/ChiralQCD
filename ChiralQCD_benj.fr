@@ -57,7 +57,7 @@ M$ClassesDescription = {
   S[11] == { ClassName -> Pii,   SelfConjugate -> True,  Unphysical -> True, Indices -> {Index[SU2W]}, FlavorIndex -> SU2W,
              Definitions -> { Pii[1] -> (pibar+pi)/Sqrt[2], Pii[2] -> (pibar-pi)/(I*Sqrt[2]), Pii[3] -> pi0}},
   S[12] == { ClassName -> Kai,   SelfConjugate -> False, Unphysical -> True, Indices -> {Index[SU2D]}, FlavorIndex -> SU2D,
-             Definitions -> { Kai[1] -> ka, Kai[2] -> ka0}},
+             Definitions -> { Kai[1] -> ka, Kai[2] -> ka0}, QuantumNumbers -> {Y->1/2}},
   S[13] == { ClassName -> eta8, SelfConjugate -> True, Unphysical -> True, Definitions -> { eta8 ->  cth eta + sth etap}},
   S[14] == { ClassName -> eta0, SelfConjugate -> True, Unphysical -> True, Definitions -> { eta0 -> -sth eta + cth etap}},
 
@@ -86,8 +86,8 @@ M$Parameters = {
   cw  == { ParameterType -> Internal, Value -> Sqrt[1-sw2],                                      TeX -> Subscript[c,w]},
   sw  == { ParameterType -> Internal, Value -> Sqrt[sw2],                                        TeX -> Subscript[s,w]},
   ee  == { ParameterType -> Internal, Value -> Sqrt[4 Pi/aEWM1],                                 TeX -> e,              InteractionOrder -> {QED,1}},
-  g1  == { ParameterType -> Internal, Value -> ee/cw,                                            TeX -> Subscript[g,1], InteractionOrder -> {QED,1}},
-  g2  == { ParameterType -> Internal, Value -> ee/sw,                                            TeX -> Subscript[g,2], InteractionOrder -> {QED,1}},
+  g1  == { ParameterType -> Internal, Definitions -> {g1 -> ee/cw},                              TeX -> Subscript[g,1], InteractionOrder -> {QED,1}},
+  g2  == { ParameterType -> Internal, Definitions -> {g2 -> ee/sw},                              TeX -> Subscript[g,2], InteractionOrder -> {QED,1}},
   gs  == { ParameterType -> Internal, Value -> Sqrt[4 Pi aS],                                    TeX -> Subscript[g,s], InteractionOrder -> {QCD,1}, ParameterName -> G},
 
   (* Chiral parameters *)

@@ -55,39 +55,19 @@ M$ClassesDescription = {
 
   (* Pseudoscalar mesons in the gauge basis *)
   S[11] == { ClassName -> Pii,   SelfConjugate -> True,  Unphysical -> True, Indices -> {Index[SU2W]}, FlavorIndex -> SU2W,
-             Definitions -> { Pii[1] -> (pibar+pi)/Sqrt[2], pii[2] -> (pibar-pi)/(i*Sqrt[2]), pii[3] -> pi0}},
+             Definitions -> { Pii[1] -> (pibar+pi)/Sqrt[2], Pii[2] -> (pibar-pi)/(I*Sqrt[2]), Pii[3] -> pi0}},
   S[12] == { ClassName -> Kai,   SelfConjugate -> False, Unphysical -> True, Indices -> {Index[SU2D]}, FlavorIndex -> SU2D,
-             Definitions -> { Kai[1] -> ka, Ka[2] -> ka0}},
+             Definitions -> { Kai[1] -> ka, Kai[2] -> ka0}},
   S[13] == { ClassName -> eta8, SelfConjugate -> True, Unphysical -> True, Definitions -> { eta8 ->  cth eta + sth etap}},
   S[14] == { ClassName -> eta0, SelfConjugate -> True, Unphysical -> True, Definitions -> { eta0 -> -sth eta + cth etap}},
 
   (* Pseudoscalar mesons in the mass basis *)
-  S[1] == { ClassName -> pi,   SelfConjugate -> False, Mass -> {MPi, 0.140}, Width -> 0, PDG -> 211},
+  S[1] == { ClassName -> pi,   SelfConjugate -> False, Mass -> {MPi, 0.140}, Width -> 0, PDG -> 211, QuantumNumbers -> {Q->1}},
   S[2] == { ClassName -> pi0,  SelfConjugate -> True,  Mass -> {MPi0,0.135}, Width -> 0, PDG -> 111},
-  S[3] == { ClassName -> ka ,  SelfConjugate -> False, Mass -> {MKa ,0.494}, Width -> 0, PDG -> 321},
-  S[4] == { ClassName -> ka0,  SelfConjugate -> True,  Mass -> {MKa ,0.498}, Width -> 0, PDG -> 311},
+  S[3] == { ClassName -> ka ,  SelfConjugate -> False, Mass -> {MKa ,0.494}, Width -> 0, PDG -> 321, QuantumNumbers -> {Q->1}},
+  S[4] == { ClassName -> ka0,  SelfConjugate -> False, Mass -> {MKa ,0.498}, Width -> 0, PDG -> 311},
   S[5] == { ClassName -> eta,  SelfConjugate -> True,  Mass -> 0.547,        Width -> 0, PDG -> 221},
-  S[6] == { ClassName -> etap, SelfConjugate -> True,  Mass -> 0.958,        Width -> 0, PDG -> 331},
-
-(* Unphysical Goldstone bosons field *)
-
-  S[100] == {
-    ClassName        -> Pion,
-    Unphysical       -> True,
-    SelfConjugate    -> True,
-    Indices          -> {Generation, Generation},
-    Definitions      -> {
-          Pion[1,1] -> pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), 
-          Pion[1,2] -> Sqrt[2]*pi[1],                                      
-          Pion[1,3] -> Sqrt[2]/2*Kap,
-          Pion[2,1] -> Sqrt[2]/2*pi[2],                                    
-          Pion[2,2] -> -pi[3]/2 + (Cos[Th] eta + Sin[Th] etap)/(2 Sqrt[3]), 
-          Pion[2,3] -> Sqrt[2]*Ka0, 
-          Pion[3,1] -> Sqrt[2]/2*Kapbar,                                   
-          Pion[3,2] -> Sqrt[2]/2*Ka0bar,                                    
-          Pion[3,3] ->  - (Cos[Th] eta + Sin[Th] etap)/Sqrt[3] }
-}
-          
+  S[6] == { ClassName -> etap, SelfConjugate -> True,  Mass -> 0.958,        Width -> 0, PDG -> 331}
 }
 
 (* -------------------------------- *)
@@ -95,7 +75,6 @@ M$ClassesDescription = {
 (* -------------------------------- *)
 
 M$Parameters = {
-
   (* SM inputs *)
   aEWM1 == { ParameterType -> External, BlockName -> SMINPUTS, OrderBlock -> 1, Value -> 127.9,       InteractionOrder -> {QED,-2} },
   Gf    == { ParameterType -> External, BlockName -> SMINPUTS, OrderBlock -> 2, Value -> 1.16637*^-5, InteractionOrder -> {QED,2}, TeX -> Subscript[G,f]},
@@ -115,32 +94,34 @@ M$Parameters = {
   fp  == { ParameterType -> External, Value -> 0.14,    TeX -> Subscript[f,\[Pi]]},
   th  == { ParameterType -> External, Value -> -0.4712, TeX -> \[Theta] },
   cth == { ParameterType -> Internal, Value -> Cos[th], TeX -> Subscript[c,\[Theta]]},
-  sth == { ParameterType -> Internal, Value -> Sin[th], TeX -> Subscript[s,\[Theta]]},
+  sth == { ParameterType -> Internal, Value -> Sin[th], TeX -> Subscript[s,\[Theta]]}
 };
 
 (* -------------------------------- *)
 (* ---------- Matrices  ----------- *)
 (* -------------------------------- *)
 
-SquaredMat[n_,i_,j_] := Module[{kk},
-  Switch[n,
-      0, Return[KroneckerDelta[i,j]], 1, Return[Pion[i,j]], 2, Return[Pion[i,kk] Pion[kk,j]],
-     _, Return[SquaredMat[Pion, n-1, i,kk] Pion[kk,j]]
-  ];
-];
+(* Meson nonet -> to be automatically derived from the gauge structure; this is for later *)
+Pion := {
+ {Pii[3]/2 + 1/(2 Sqrt[3]) eta8 , (Pii[1] - I Pii[2])/2,           Sqrt[2]/2 Kai[1]},
+ {(Pii[1] + I Pii[2])/2,          -Pii[3]/2 + 1/(2 Sqrt[3]) eta8 , Sqrt[2]/2 Kai[2]},
+ {Sqrt[2]/2 Kaibar[1],            Sqrt[2]/2 Kaibar[2],             -1/Sqrt[3] eta8}
+};
+PionDim := Union[Dimensions[Pion]][[1]];
 
-U[ii_,jj_]    := SquaredMat[0,ii,jj] + Sum[(  2 I/fp SquaredMat[k,ii,jj] )/(k!), {k, 1, 1}] ; 
-Ubar[ii_,jj_] := SquaredMat[0,ii,jj] + Sum[( -2 I/fp SquaredMat[k,ii,jj] )/(k!), {k, 1, 1}] ; 
+(* Useful tools to get powers of the meson nonet *)
+PowerMat[i_,j_,n_] := Switch[n, 0, IndexDelta[i,j], _, Sum[PowerMat[i, kk, n-1] Pion[[kk,j]],{kk,1,PionDim} ]];
+UU[ii_, jj_] := Sum[Power[2 I/fp, kk] PowerMat[ii, jj, kk]/(kk!), {kk, 0, 2}];
+
 
 (* -------------------------------- *)
 (* ---------- Lagrangian  --------- *)
 (* -------------------------------- *)
+LKinGauge := 1/2 del[eta0, mu]^2 + Sum[fp^2/4 del[HC[UU[jj, ii]] , mu] del[UU[jj, ii], mu], {ii, PionDim}, {jj, PionDim}] /. del -> DC;
+LKinMass  := ExpandIndices[#, FlavorExpand -> {SU2D, SU2W}] & /@ Expand[LKinGauge];
 
-Lkin := Block[{ii,jj}, fp^2/8 ExpandIndices[ DC[U[ii,jj],mu] * DC[Ubar[jj,ii],mu] ] ] ; 
-
+(*
 Lmass := Block[{ii,jj,ll}, fp^2/8  ExpandIndices[ Mm[ii,ii] SquaredMat[2,ii,ii]] ]; (* mass matrix is diag so only need ii,ii terms *) 
-
 Lanom := Block[{ii,jj,ll}, - fp^2/6 ExpandIndices[ SquaredMat[1,jj,ii].SquaredMat[1,ii,ll] ]];
-
 LQCD := Lkin + Lmass + Lanom; 
-
+*)
